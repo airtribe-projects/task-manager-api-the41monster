@@ -4,8 +4,8 @@ const router = express.Router();
 const tasks = [];
 let idCount = 1;
 
-router.post('/api/v1/tasks', (req, res)=>{
-    const { title, description, status } = req.body;
+router.post('/tasks', (req, res)=>{
+    const { title, description, completed } = req.body;
 
     if (!title || typeof title!=='string'){
         return res
@@ -13,27 +13,34 @@ router.post('/api/v1/tasks', (req, res)=>{
         .send({message:'Title should be a string'});
     }
 
-    if (status && !['pending', 'complete'].includes(status)){
+    if (!description || typeof description!=='string'){
         return res
         .status(400)
-        .send({message:'status should be "complete" or "pending"'});
+        .send({message:'Description is mandatory and should be a string'});
+    }
+
+    if (completed !== undefined && typeof completed !== 'boolean') {
+        return res
+        .status(400)
+        .send({ error: 'Completed must be a boolean.' });
     }
 
     newTask = {
         title,
-        description: description || '',
-        status: status || 'pending',
+        description,
+        completed: completed || false,
         id: idCount++
     };
+
     tasks.push(newTask);
-    res.send(newTask);
+    res.status(201).send(newTask);
 });
 
-router.get('/api/v1/tasks', (req, res)=>{
+router.get('/tasks', (req, res)=>{
     res.send(tasks);
 });
 
-router.get('/api/v1/tasks/:id', (req, res)=>{
+router.get('/tasks/:id', (req, res)=>{
     const taskId = parseInt(req.params.id, 10);
     const index = tasks.findIndex((t)=>t.id===taskId);
 
@@ -45,7 +52,7 @@ router.get('/api/v1/tasks/:id', (req, res)=>{
     res.send(tasks[index]);
 });
 
-router.delete("/api/v1/tasks/:id", (req, res)=>{
+router.delete("/tasks/:id", (req, res)=>{
     const taskId = parseInt(req.params.id, 10);
     const index = tasks.findIndex((t)=>t.id===taskId);
 
@@ -58,7 +65,7 @@ router.delete("/api/v1/tasks/:id", (req, res)=>{
     res.send({message:"Task deleted successfully"})
 });
 
-router.put("/api/v1/tasks/:id", (req, res)=>{
+router.put("/tasks/:id", (req, res)=>{
     const taskId = parseInt(req.params.id, 10);
     const index = tasks.findIndex((t)=>t.id===taskId);
 
@@ -68,12 +75,23 @@ router.put("/api/v1/tasks/:id", (req, res)=>{
         .send({message:"Task with given id not found"});
     }
 
-    const { title, description, status } = req.body;
+    const { title, description, completed } = req.body;
     const task = tasks[index];
+
+
+    if (title && typeof title !== 'string') {
+        return res.status(400).send({ message: 'Title must be a string.' });
+    }
+    if (description && typeof description !== 'string') {
+        return res.status(400).send({ message: 'Description must be a string.' });
+    }
+    if (completed !== undefined && typeof completed !== 'boolean') {
+        return res.status(400).send({ message: 'Completed must be a boolean.' });
+    }
 
     if (title) task.title = title;
     if (description) task.description = description;
-    if (status && !['pending', 'complete'].includes(status)) task.status = status;
+    if (completed !== undefined) task.completed = completed;
 
     res.send(task);
 });
