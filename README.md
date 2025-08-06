@@ -80,10 +80,3 @@ All endpoints are prefixed with `/tasks`.
   ```sh
   curl -X DELETE http://localhost:3000/tasks/<taskId>
   ```
-
-## Testing
-You can use tools like [Postman](https://www.postman.com/) or the provided curl commands to test the API endpoints.
-
----
-
-Feel free to contribute or open issues for improvements!
